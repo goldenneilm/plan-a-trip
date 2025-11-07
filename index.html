@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=.65">
+    <meta charset="utf-8">
+    <title>Neil Golden - Technical Writing Sample</title>
+  </head>
+	<style>
+
+html {
+  width: 100%;                    
+  height: 100vh;                  
+  font-size: 1.0em;               
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;                      
+}
+
+div {
+  /* border: 2px solid blue; */
+}
+
+.superflex {
+  display: flex;
+  justify-content: center;
+}
+
+.column-container {
+  width: 36rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+}
+
+.code-header {
+  font-family: sans-serif;
+  font-style: bold;
+  font-size: 12pt;
+  margin-top: 1rem;
+  color: #999;
+}
+
+.output-header {
+  font-style: italic;
+  font-size: 12pt;
+  font-family: sans-serif;
+  margin: 0 2rem;
+  color: #555;
+}
+
+.code-output {
+  margin: 1rem 2rem;
+  border-left: .15rem solid #eee;
+  padding-left: 1rem;
+}
+
+.code-output > pre {
+  font-size: 10pt;
+  color: #555;
+}
+
+.code-wrapper {
+  width: 30rem;
+  position: relative;
+  background-color: #f5f5f5; 
+  border: .1rem solid lightgray; 
+  border-radius: 1rem; 
+  padding: 0 1rem; 
+  margin: 1rem;
+  margin-bottom: .5rem; 
+  overflow-x: auto; 
+}
+
+pre {
+  margin: 0 0 1rem; 
+  white-space: pre-wrap; 
+  word-wrap: break-word;
+}
+
+code {
+  font-family: monospace;
+  font-size: 10pt;
+  color: #333;
+}
+
+p {
+  font-family: sans-serif;
+  font-size: 12pt;
+  margin-left: 2rem;
+  line-height: 1.3rem;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  
+  /* Cosmetic styles */
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 0.8em;
+  opacity: 0.7; 
+  transition: opacity 0.2s;
+}
+
+.copy-btn:hover {
+  opacity: 1; 
+}
+
+.copy-btn.copied {
+  background-color: #28a745; 
+  content: "Copied!"; 
+}
+
+p > code {
+  background-color: #f5f5f5;
+  color: #555;
+  border: .05rem solid lightgray;
+  border-radius: 0.5rem;
+  /* margin-left: -0.5rem; */
+  padding: .1rem .2rem;
+  font-size: 12pt;
+}
+
+table {
+  margin: 1rem 2rem 1.5rem;
+  border: .1rem solid lightgray;
+  border-radius: 0.5rem;
+}
+
+tr {
+  border: .1rem solid lightgray;
+}
+
+th {
+  text-align: left;
+  background-color: #eee;
+}
+
+th, td {
+  font-family: sans-serif;
+  padding: .5rem;
+}
+
+h2, h3 {
+  font-family: sans-serif;
+  margin: 1.5rem 1rem;
+}
+
+a {
+  color: DodgerBlue;
+}
+
+h2 > a {
+  color: black;
+  text-decoration: none;
+}
+
+</style>
+
+<script>
+function copyCode(button) {
+  const code = button.parentElement.querySelector('code');
+  navigator.clipboard.writeText(code.innerText).then(() => {
+    button.textContent = "Copied!";
+    button.classList.add("copied");
+    setTimeout(() => {
+      button.textContent = "Copy";
+      button.classList.remove("copied");
+    }, 1500); 
+  }).catch(err => {
+    console.error('Failed to copy text: ', err);
+  });
+}
+
+</script>
+
+<body>
+<div class="superflex">
+  <div class="column-container">
+	  <h2 id="plan-a-trip"><a href="#plan-a-trip">Plan a trip</a></h2>
+    <p>Let's go on a journey together. But first, let's get some basic information so we can plan our trip.</p> 
+		<p>One item on our to-do list is to see the <a target="_blank" href="https://images.metmuseum.org/CRDImages/eg/original/DP240337.jpg">Temple of Dendur</a> at the Met Museum in New York City. We can search for information about it using the museum's <a target="_blank" href="https://metmuseum.github.io/">Art Collection API.</a></p>
+    <p>Base URL: <code>https://collectionapi.metmuseum.org</code></p>
+    <p>Method: <code>GET /public/collection/v1/search</code></p>
+    <table>
+      <tr><th>Parameter</th><th>Description</th></tr>
+      <tr><td><code>q</code></td><td>Search string</td></tr>
+    </table>
+    <div class="code-wrapper">
+      <div class="code-header">cURL</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code>
+curl -s https://collectionapi.metmuseum.org/public/collection/v1/search?q=Dendur | jq</code></pre>
+    </div>
+    <p>The API returns an array of integer IDs of objects that contain text matching our query:</p>
+    <div class="code-output">
+      <pre>{
+  "total": 27,
+  "objectIDs": [
+    547802,
+    544227,
+    ...
+  ]
+}</pre>
+    </div>
+    <p>Or <code>null</code> if no results were found:</p>
+    <div class="code-output">
+      <pre>{
+  "total": 0,
+  "objectIDs": null
+}</pre>
+    </div>
+    <h2 id="see-an-object"><a href="#see-an-object">See an object</a></h2>
+    <p>Next, let's look up some basic facts about an object, using the <code>objects</code> route:</p>
+    <p>Method: <code>GET /public/collection/v1/objects/{id}</code></p>
+		<p>Parameter: <code>id</code> &mdash; A numeric ObjectID.
+    <p>The response schema is:</p>
+    <div class="code-output">
+      <pre>
+200 OK
+
+{
+  "objectID": <i>integer</i>,
+  ...
+  "tags": [
+    {
+      "term": "<i>string</i>",
+      "AAT_URL": "<i>url</i>",
+      "Wikidata_URL": "<i>url</i>"
+    }
+  ],
+  "title": "<i>string</i>", 
+  "primaryImage": "<i>url</i>",
+  "department": "<i>string</i>",
+  "period": "<i>string</i>",
+  "reign": "<i>string</i>",
+  "objectDate": "<i>string</i>",
+  "objectWikidata_URL": "<i>url</i>",
+  "isTimelineWork": <i>boolean</i>,
+  "GalleryNumber": "<i>string</i>"
+}</pre>
+    </div>
+    <p>Let's take a closer look at our specific object. We can <code>GET /objects/{id}</code>, where <code>id</code> is the first ObjectID returned above. Then we can select data fields with <code>jq</code>, and format the output as CSV for convenience:</p>
+    <div class="code-wrapper">
+      <div class="code-header">cURL</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code>
+curl -s https://collectionapi.metmuseum.org/public/collection/v1/objects/547802 | jq -r '[.title, .primaryImage, .department, .objectDate, .period, .reign] | @csv'</code></pre>
+    </div>
+    <div class="code-output">
+      <pre>"The Temple of Dendur","https://images.metmuseum.org/CRDImages/eg/original/DP240337.jpg","Egyptian Art","completed by 10 B.C.","Roman Period","reign of Augustus"</pre>
+    </div>
+    <p>We can also fetch multiple objects. Making one request per ID:</p>
+    <div class="code-wrapper">
+      <div class="code-header">cURL</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code>
+#!/usr/bin/env bash
+
+IDS=547802,544227,544887
+
+curl -s https://collectionapi.metmuseum.org/public/collection/v1/objects/{$IDS} \
+  | jq -r '[.title, .primaryImage, .department, .objectDate, .period, .reign] | @csv' \
+  | tee objects.csv</code></pre>
+    </div>
+    <div class="code-output">
+      <pre>"The Temple of Dendur","https://images.metmuseum.org/CRDImages/eg/original/DP240337.jpg","Egyptian Art","completed by 10 B.C.","Roman Period","reign of Augustus"
+"Hippopotamus (""William"")","https://images.metmuseum.org/CRDImages/eg/original/DP248993.jpg","Egyptian Art","ca. 1961-1878 B.C.","Middle Kingdom","Senwosret I to Senwosret II"
+"Statue of Horus as a falcon protecting King Nectanebo II","https://images.metmuseum.org/CRDImages/eg/original/DP-38684-002.jpg","Egyptian Art","360-343 BCE","Late Period","reign of Nectanebo II"</pre>
+    </div>
+    <p>Alternatively, in this example we use the Python <code>requests</code> library, and format the output as an array of JSON objects.</p>
+    <div class="code-wrapper">
+      <div class="code-header">Python 3</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code>
+#!/usr/bin/env python3
+
+import requests, json
+
+BASE_URL = "https://collectionapi.metmuseum.org"
+IDS = (547802,544227,544887)
+OBJECTS = []
+
+for id in IDS:
+  try:
+    route = f'/public/collection/v1/objects/{id}'
+    response = requests.get(BASE_URL + route)
+    if response.status_code == 200:
+      OBJECTS.append(response.json())
+    else:
+      print(f"HTTP error: {response.status_code} {response.reason}")
+  except requests.exceptions.RequestException as e:
+    print(f"Request exception: {str(e)}")
+
+if len(OBJECTS):
+  print(json.dumps(OBJECTS, indent=2))
+ </code></pre>
+    </div>
+    <div class="code-output">
+      <pre>
+[
+  {
+    "objectID": 547802,
+    "primaryImage": "https://images.metmuseum.org/CRDImages/eg/original/DP240337.jpg",
+    "title": "The Temple of Dendur",
+    ...
+  },
+  {
+    "objectID": 544227,
+    "primaryImage": "https://images.metmuseum.org/CRDImages/eg/original/DP248993.jpg",
+    "title": "Hippopotamus (\"William\")",
+    ...
+  },
+  {
+    "objectID": 544887,
+    "primaryImage": "https://images.metmuseum.org/CRDImages/eg/original/DP-38684-002.jpg",
+    "title": "Statue of Horus as a falcon protecting King Nectanebo II",
+    ...
+  }
+]</pre>
+    </div>
+    <p>The rate limit of the museum's API is 80 requests/sec. If we fetch more than 80 records at once, we'll need to limit our request rate.</p>
+    <h2 id="map-a-location"><a href="#map-a-location">Map a location</a></h2>
+    <p>Next, let's check the weather for the upcoming week. We know the Met is located at 1000 Fifth Avenue, New York City. Let's find its latitude and longitude using OpenStreetMap's free geocoding service, <a target="_blank" href="https://nominatim.org/">Nominatim.</a></p>
+    <p>An API key is not required, but we must provide a <code>User-Agent</code> header in the request.</p>
+    <p>Base URL: <code>https://nominatim.openstreetmap.org</code></p>
+    <p>Method: <code>GET /search</p>
+    <table>
+      <tr><th>Parameter</th><th>Description</th></tr>
+      <tr><td><code>q</code></td><td>Free-form query string, e.g. street address</td></tr>
+      <tr><td><code>format</code></td><td>String, one of: <code>xml</code>, <code>json</code>, <code>jsonv2</code>, <code>geojson</code>, <code>geocodejson</code></td></tr>
+      <tr><td><code>limit</code></td><td>Number of results to fetch, in range [<code>1</code>, <code>40</code>], default <code>10</code></td></tr>
+    </table>
+		<p>Results are sorted by relevance. We only want the best match, so we specify <code>limit=1</code>.</p>
+		<p>The query string is the url-encoding of "1000 Fifth Avenue, New York City, New York, U.S."</p>
+    <div class="code-wrapper">
+      <div class="code-header">cURL</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code>
+#!/usr/bin/env bash
+
+curl -s -H "User-Agent: Neil/1.0" 'https://nominatim.openstreetmap.org/search?q=1000%20Fifth%20Avenue%2C%20New%20York%20City%2C%20New%20York%2C%20U.S.&format=json&limit=1' | jq</code></pre>
+    </div>
+    <div class="code-output">
+      <pre>[
+  {
+    "place_id": 338471781,
+    "licence": "Data &copy; OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "way",
+    "osm_id": 1271518873,
+    "lat": "40.8021613",
+    "lon": "-73.9453686",
+    "class": "highway",
+    "type": "secondary",
+    "place_rank": 26,
+    "importance": 0.568635634246592,
+    "addresstype": "road",
+    "name": "5th Avenue",
+    "display_name": "5th Avenue, Manhattan Community Board 11, Manhattan, New York County, City of New York, New York, 10035, United States of America",
+    "boundingbox": [
+      "40.8019710",
+      "40.8023524",
+      "-73.9455080",
+      "-73.9452302"
+    ]
+  }
+]
+</pre>
+    </div>
+		<p>Or, to get the latitude and longitude using Python:</p>
+    <div class="code-wrapper">
+      <div class="code-header">Python 3</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code>
+#!/usr/bin/env python3
+
+import requests, json
+
+BASE_URL="https://nominatim.openstreetmap.org"
+USER_AGENT="Neil/1.0"
+ADDRESS="1000 Fifth Avenue, New York City, New York, U.S."
+
+try:
+  headers = {
+    'User-Agent': USER_AGENT
+  }
+  params = {
+    'q': ADDRESS,
+    'format': 'json',
+    'limit': 1
+  }
+  route = "/search"
+  response = requests.get(BASE_URL + route, params=params, headers=headers)
+  lat = response.json()[0]['lat']
+  lon = response.json()[0]['lon']
+  print(lat, lon)
+except Exception as e:
+  sys.exit(f"Exception: {str(e)}")</pre>
+    </div>
+    <div class="code-output">
+      <pre>40.8021613 -73.9453686</pre>
+    </div>
+    <h2 id="check-the-weather"><a href="#check-the-weather">Check the weather</a></h2>
+    <p>We can provide the latitude and longitude to the <a target="_blank" href="https://open-meteo.com/">Open Meteo API</a> to find the weather forecast. The API is free for noncommercial use only. Request rate limit is 10,000 API calls per day, 5,000 per hour, and 600 per minute.</p>
+    <p>No API key is required.</p>
+    <p>Base URL: <code>https://api.open-meteo.com/v1/</code></p>
+    <p>Method: <code>GET /forecast</code></p>
+    <table>
+      <tr><th>Parameter</th><th>Description</th></tr>
+      <tr><td><code>latitude</code></td><td>Float in range <code>[-90, 90]</code></td></tr>
+      <tr><td><code>longitude</code></td><td>Float in range <code>[-180, 180]</code></td></tr>
+      <tr><td><code>current</code></td><td>List of measurement variables to fetch for the current weather</td></tr>
+      <tr><td><code>daily</code></td><td>List of forecast variables to fetch for the next <code>forecast_days</code> number of days</td></tr>
+      <tr><td><code>forecast_days</code></td><td>The forecast length in days (range [<code>0</code>, <code>16</code>], default <code>7</code>)</td></tr>
+      <tr><td><code>timezone</code></td><td><a target="_blank" href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">TZ identifier code</a> or <code>auto</code> for request origin TZ</td></tr>
+    </table>
+    <p>Variables:</p>
+		<table>
+	    <tr><th>Variable</th><th>Valid time</th><th>Unit</th><th>Description</th></tr>
+	    <tr><td><code>temperature_2m</code></td><td>Instant</td><td>C</td><td>Air temperature at 2 meters above ground</td></tr>
+	    <tr><td><code>is_day</code></td><td>Instant</td><td>n/a</td><td><code>1</code> if the current time step has daylight, or <code>0</code> at night</td></tr>
+	    <tr><td><code>precipitation</code></td><td>Preceding 15 minutes sum</td><td>mm</td><td>Precipitation</td></tr>
+	    <tr><td><code>weather_code</code></td><td>Instant</td><td>WMO code</td><td>Weather condition as a numeric WMO weather interpretation code</td></tr>
+    </table>
+    <div class="code-wrapper">
+      <div class="code-header">cURL</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code>
+curl -s "https://api.open-meteo.com/v1/forecast?latitude={40.8021613}&amp;longitude={-73.9453686}&amp;current=temperature_2m,is_day,precipitation,weather_code&amp;daily=weather_code,precipitation_probability_max&amp;timezone=America/New_York&amp;forecast_days=7" | jq</code></pre>
+    </div>
+    <div class="code-output">
+      <pre>{
+  "latitude": 40.81466,
+  "longitude": -73.9571,
+  "generationtime_ms": 0.4341602325439453,
+  "utc_offset_seconds": -18000,
+  "timezone": "America/New_York",
+  "timezone_abbreviation": "GMT-5",
+  "elevation": 16.0,
+  "current_units": {
+    "time": "iso8601",
+    "interval": "seconds",
+    "temperature_2m": "°C",
+    "is_day": "",
+    "precipitation": "mm",
+    "weather_code": "wmo code"
+  },
+  "current": {
+    "time": "2025-11-06T21:30",
+    "interval": 900,
+    "temperature_2m": 5.4,
+    "is_day": 0,
+    "precipitation": 0.00,
+    "weather_code": 3
+  },
+  "daily_units": {
+    "time": "iso8601",
+    "weather_code": "wmo code",
+    "precipitation_probability_max": "%"
+  },
+  "daily": {
+    "time": [
+      "2025-11-06",
+      "2025-11-07",
+      "2025-11-08",
+      "2025-11-09",
+      "2025-11-10",
+      "2025-11-11",
+      "2025-11-12"
+    ],
+    "weather_code": [
+      3,
+      3,
+      61,
+      53,
+      81,
+      3,
+      3
+    ],
+    "precipitation_probability_max": [
+      7,
+      42,
+      65,
+      55,
+      48,
+      11,
+      5
+    ]
+  }
+}
+</pre>
+    </div>
+    <p>Or, in Python, with WMO code translation:</p>
+    <div class="code-wrapper">
+      <div class="code-header">Python 3</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      <pre><code>
+import requests, json
+
+BASE_URL = "https://api.open-meteo.com/v1"
+ROUTE = "/forecast"
+LAT = 40.8021613
+LON = -73.9453686
+
+def get_weather_forecast(lat, lon):
+  params = {
+    "latitude": lat,
+    "longitude": lon,
+    "current": "temperature_2m,is_day,precipitation,weather_code",
+    "daily": "weather_code,precipitation_probability_max",
+    "timezone": "auto"
+  }
+
+  try:
+    response = requests.get(BASE_URL + ROUTE, params=params)
+    return response.json()
+  except Exception as e:
+    sys.exit(f"Error fetching weather data: {str(e)}")
+
+def wmo_decode(code):
+  lut = {
+    "0": "Clear sky",
+    "1": "Mainly clear",
+    "2": "Partly cloudy",
+    "3": "Overcast",
+    "45": "Fog",
+    "48": "Heavy fog",
+    "51": "Light drizzle",
+    "53": "Moderate drizzle",
+    "55": "Dense drizzle",
+    "56": "Light freezing drizzle",
+    "57": "Heavy freezing drizzle",
+    "61": "Slight rain",
+    "63": "Moderate rain",
+    "65": "Heavy rain",
+    "66": "Light freezing rain",
+    "67": "Heavy freezing rain",
+    "71": "Slight snow fall",
+    "73": "Moderate snow fall",
+    "75": "Heavy snow fall",
+    "77": "Snow grains",
+    "80": "Slight rain showers",
+    "81": "Moderate rain showers",
+    "82": "Violent rain showers",
+    "85": "Slight snow showers",
+    "86": "Heavy snow showers",
+    "95": "Thunderstorm",
+  }
+  return lut[str(code)]
+
+if __name__ == "__main__":
+  weather_data = get_weather_forecast(LAT, LON)
+  if weather_data:
+    print(f"Current weather at [{LAT}, {LON}]:")
+    print(f"Temperature: {weather_data['current']['temperature_2m']} C")
+    print(f"Precipitation: {weather_data['current']['precipitation']} mm")
+    print(f"Weather code: {wmo_decode(weather_data['current']['weather_code'])}")
+    print("\nDaily Forecast:")
+    for n in range(0, 7):
+      print(weather_data['daily']['time'][n], wmo_decode(weather_data['daily']['weather_code'][n]))</pre>
+    </div>
+    <div class="code-output">
+      <pre>
+Current weather at [40.8021613, -73.9453686]:
+Temperature: 11.7 C
+Precipitation: 0.0 mm
+Weather code: Partly cloudy
+
+Daily Forecast:
+2025-11-06 Overcast
+2025-11-07 Overcast
+2025-11-08 Slight rain
+2025-11-09 Moderate rain showers
+2025-11-10 Moderate rain
+2025-11-11 Overcast
+2025-11-12 Overcast</pre>
+    </div>  
+    <p>That's all the info we need right now. We'll check the weather again as the date of our trip gets closer.</p>
+    <h3>***</h3>
+  </div>
+</div>
+</body>
+</html>
