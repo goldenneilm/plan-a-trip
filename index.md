@@ -70,7 +70,7 @@ The response schema is:
 }
 ```
 
-Let's take a closer look at our specific object. We can `GET /objects/{id}`, where `id` is the first ObjectID returned above. Then we can select data fields with `jq`, and format the output as CSV for convenience:
+Let's take a closer look at our specific object. We can `GET /objects/{id}`, where `id` is the first ObjectID returned above (`547802`). Then we can select data fields with `jq`, and format the output as CSV for convenience:
 
 ```sh
 curl -s https://collectionapi.metmuseum.org/public/collection/v1/objects/547802 | jq -r '[.title, .primaryImage, .department, .objectDate, .period, .reign] | @csv'
